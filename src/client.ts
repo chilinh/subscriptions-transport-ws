@@ -2,15 +2,15 @@ declare let window: any;
 const _global = typeof global !== "undefined" ? global : typeof window !== "undefined" ? window : {};
 const NativeWebSocket = _global.WebSocket || _global.MozWebSocket;
 
-import * as Backoff from "backo2";
-import { EventEmitter, ListenerFn } from "eventemitter3";
-import isString = require("lodash.isstring");
-import isObject = require("lodash.isobject");
-import { ExecutionResult } from "graphql/execution/execute";
-import { print } from "graphql/language/printer";
-import { DocumentNode } from "graphql/language/ast";
-import { getOperationAST } from "graphql/utilities/getOperationAST";
-import $$observable from "symbol-observable";
+import * as Backoff from 'backo2';
+import { default as EventEmitterType, EventEmitter, ListenerFn } from 'eventemitter3';
+import isString = require('lodash.isstring');
+import isObject = require('lodash.isobject');
+import { ExecutionResult } from 'graphql/execution/execute';
+import { print } from 'graphql/language/printer';
+import { DocumentNode } from 'graphql/language/ast';
+import { getOperationAST } from 'graphql/utilities/getOperationAST';
+import $$observable from 'symbol-observable';
 
 import { GRAPHQL_WS } from "./protocol";
 import { WS_TIMEOUT } from "./defaults";
@@ -26,8 +26,8 @@ export interface Observable<T> {
   subscribe(
     observer: Observer<T>
   ): {
-    unsubscribe: () => void;
-  };
+      unsubscribe: () => void;
+    };
 }
 
 export interface OperationOptions {
@@ -83,7 +83,7 @@ export class SubscriptionClient {
   private reconnectionAttempts: number;
   private backoff: any;
   private connectionCallback: any;
-  private eventEmitter: EventEmitter;
+  private eventEmitter: EventEmitterType;
   private lazy: boolean;
   private inactivityTimeout: number;
   private inactivityTimeoutId: any;
@@ -398,7 +398,7 @@ export class SubscriptionClient {
     ) {
       throw new Error(
         "Incorrect option types. query must be a string or a document," +
-          "`operationName` must be a string, and `variables` must be an object."
+        "`operationName` must be a string, and `variables` must be an object."
       );
     }
   }
@@ -407,9 +407,9 @@ export class SubscriptionClient {
     const payloadToReturn =
       payload && payload.query
         ? {
-            ...payload,
-            query: typeof payload.query === "string" ? payload.query : print(payload.query)
-          }
+          ...payload,
+          query: typeof payload.query === "string" ? payload.query : print(payload.query)
+        }
         : payload;
 
     return {
@@ -469,8 +469,8 @@ export class SubscriptionClient {
         if (!this.reconnecting) {
           throw new Error(
             "A message was not sent because socket is not connected, is closing or " +
-              "is already closed. Message was: " +
-              JSON.stringify(message)
+            "is already closed. Message was: " +
+            JSON.stringify(message)
           );
         }
     }
