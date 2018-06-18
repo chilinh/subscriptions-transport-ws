@@ -81,6 +81,7 @@ var SubscriptionClient = (function () {
         }
     };
     SubscriptionClient.prototype.request = function (request) {
+        var _a;
         var getObserver = this.getObserver.bind(this);
         var executeOperation = this.executeOperation.bind(this);
         var unsubscribe = this.unsubscribe.bind(this);
@@ -119,7 +120,6 @@ var SubscriptionClient = (function () {
                 };
             },
             _a;
-        var _a;
     };
     SubscriptionClient.prototype.on = function (eventName, callback, context) {
         var handler = this.eventEmitter.on(eventName, callback, context);

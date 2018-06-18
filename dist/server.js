@@ -9,8 +9,9 @@ var empty_iterable_1 = require("./utils/empty-iterable");
 var iterall_1 = require("iterall");
 var is_subscriptions_1 = require("./utils/is-subscriptions");
 var parse_legacy_protocol_1 = require("./legacy/parse-legacy-protocol");
+var isWebSocketServer = function (socket) { return socket.on; };
 var SubscriptionServer = (function () {
-    function SubscriptionServer(options, socketOptions) {
+    function SubscriptionServer(options, socketOptionsOrServer) {
         var _this = this;
         var onOperation = options.onOperation, onOperationComplete = options.onOperationComplete, onConnect = options.onConnect, onDisconnect = options.onDisconnect, keepAlive = options.keepAlive;
         this.specifiedRules = options.validationRules || graphql_1.specifiedRules;
@@ -20,7 +21,12 @@ var SubscriptionServer = (function () {
         this.onConnect = onConnect;
         this.onDisconnect = onDisconnect;
         this.keepAlive = keepAlive;
-        this.wsServer = new WebSocket.Server(socketOptions || {});
+        if (isWebSocketServer(socketOptionsOrServer)) {
+            this.wsServer = socketOptionsOrServer;
+        }
+        else {
+            this.wsServer = new WebSocket.Server(socketOptionsOrServer || {});
+        }
         var connectionHandler = (function (socket, request) {
             socket.upgradeReq = request;
             if (socket.protocol === undefined ||
@@ -56,8 +62,8 @@ var SubscriptionServer = (function () {
             _this.wsServer.close();
         };
     }
-    SubscriptionServer.create = function (options, socketOptions) {
-        return new SubscriptionServer(options, socketOptions);
+    SubscriptionServer.create = function (options, socketOptionsOrServer) {
+        return new SubscriptionServer(options, socketOptionsOrServer);
     };
     Object.defineProperty(SubscriptionServer.prototype, "server", {
         get: function () {

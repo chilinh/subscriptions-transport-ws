@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -1199,6 +1199,7 @@ describe('Server', function () {
         server = http_1.createServer(notFoundRequestListener);
         server.listen(SERVER_EXECUTOR_TESTS_PORT);
         var executeWithAsyncIterable = function () {
+            var _a;
             var called = false;
             return _a = {
                     next: function () {
@@ -1219,7 +1220,6 @@ describe('Server', function () {
                     return this;
                 },
                 _a;
-            var _a;
         };
         server_1.SubscriptionServer.create({
             schema: schema,
@@ -2051,6 +2051,47 @@ describe('Client<->Server Flow', function () {
                 },
             });
         });
+    });
+    it('works with custom WebSocket implementation', function (done) {
+        var MockServer = require('mock-socket-with-protocol').Server;
+        var MockWebSocket = require('mock-socket-with-protocol').WebSocket;
+        var CUSTOM_PORT = 234235;
+        var customServer = new MockServer("ws://localhost:" + CUSTOM_PORT);
+        server_1.SubscriptionServer.create({
+            schema: schema,
+            execute: graphql_1.execute,
+            subscribe: graphql_1.subscribe,
+        }, customServer);
+        var client = new client_1.SubscriptionClient("ws://localhost:" + CUSTOM_PORT, {}, MockWebSocket);
+        var numTriggers = 0;
+        client.request({
+            query: "\n            subscription userInfoFilter1($id: String) {\n              userFiltered(id: $id) {\n                id\n                name\n              }\n            }",
+            operationName: 'userInfoFilter1',
+            variables: {
+                id: 3,
+            },
+        }).subscribe({
+            next: function (result) {
+                if (result.errors) {
+                    chai_1.assert(false);
+                }
+                if (result.data) {
+                    numTriggers += 1;
+                    chai_1.assert.property(result.data, 'userFiltered');
+                    chai_1.assert.equal(result.data.userFiltered.id, '3');
+                    chai_1.assert.equal(result.data.userFiltered.name, 'Jessie');
+                }
+            },
+        });
+        setTimeout(function () {
+            testPubsub.publish('userFiltered', { id: 1 });
+            testPubsub.publish('userFiltered', { id: 2 });
+            testPubsub.publish('userFiltered', { id: 3 });
+        }, 50);
+        setTimeout(function () {
+            chai_1.expect(numTriggers).equal(1);
+            done();
+        }, 200);
     });
 });
 //# sourceMappingURL=tests.js.map
