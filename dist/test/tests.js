@@ -255,6 +255,37 @@ describe('Client', function () {
         });
         new client_1.SubscriptionClient("ws://localhost:" + RAW_TEST_PORT + "/");
     });
+    it('should subscribe once after reconnect', function (done) {
+        var isClientReconnected = false;
+        var subscriptionsCount = 0;
+        wsServer.on('headers', function () {
+            if (!isClientReconnected) {
+                isClientReconnected = true;
+                var stop = Date.now() + 1100;
+                while (Date.now() < stop) {
+                }
+            }
+        });
+        wsServer.on('connection', function (connection) {
+            connection.on('message', function (message) {
+                var parsedMessage = JSON.parse(message);
+                if (parsedMessage.type === message_types_1.default.GQL_START) {
+                    subscriptionsCount++;
+                }
+            });
+        });
+        var client = new client_1.SubscriptionClient("ws://localhost:" + RAW_TEST_PORT + "/", {
+            reconnect: true,
+            reconnectionAttempts: 1,
+        });
+        client.request({
+            query: "subscription useInfo {\n        user(id: 3) {\n          id\n          name\n        }\n      }",
+        }).subscribe({});
+        setTimeout(function () {
+            chai_1.expect(subscriptionsCount).to.be.equal(1);
+            done();
+        }, 1500);
+    });
     it('should send GQL_CONNECTION_INIT message first, then the GQL_START message', function (done) {
         var initReceived = false;
         var sub;

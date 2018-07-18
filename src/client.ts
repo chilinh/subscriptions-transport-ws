@@ -1,20 +1,20 @@
 declare let window: any;
-const _global = typeof global !== "undefined" ? global : typeof window !== "undefined" ? window : {};
+const _global = typeof global !== 'undefined' ? global : typeof window !== 'undefined' ? window : {};
 const NativeWebSocket = _global.WebSocket || _global.MozWebSocket;
 
 import * as Backoff from 'backo2';
 import { default as EventEmitterType, EventEmitter, ListenerFn } from 'eventemitter3';
-import isString = require('lodash.isstring');
-import isObject = require('lodash.isobject');
+import isString from './utils/is-string';
+import isObject from './utils/is-object';
 import { ExecutionResult } from 'graphql/execution/execute';
 import { print } from 'graphql/language/printer';
 import { DocumentNode } from 'graphql/language/ast';
 import { getOperationAST } from 'graphql/utilities/getOperationAST';
 import $$observable from 'symbol-observable';
 
-import { GRAPHQL_WS } from "./protocol";
-import { WS_TIMEOUT } from "./defaults";
-import MessageTypes from "./message-types";
+import { GRAPHQL_WS } from './protocol';
+import { WS_TIMEOUT } from './defaults';
+import MessageTypes from './message-types';
 
 export interface Observer<T> {
   next?: (value: T) => void;
@@ -24,10 +24,10 @@ export interface Observer<T> {
 
 export interface Observable<T> {
   subscribe(
-    observer: Observer<T>
+    observer: Observer<T>,
   ): {
-      unsubscribe: () => void;
-    };
+    unsubscribe: () => void;
+  };
 }
 
 export interface OperationOptions {
@@ -104,14 +104,14 @@ export class SubscriptionClient {
       reconnect = false,
       reconnectionAttempts = Infinity,
       lazy = false,
-      inactivityTimeout = 0
+      inactivityTimeout = 0,
     } =
       options || {};
 
     this.wsImpl = webSocketImpl || NativeWebSocket;
 
     if (!this.wsImpl) {
-      throw new Error("Unable to find native implementation, or alternative implementation for WebSocket!");
+      throw new Error('Unable to find native implementation, or alternative implementation for WebSocket!');
     }
 
     this.connectionParams = connectionParams;
@@ -161,7 +161,7 @@ export class SubscriptionClient {
 
       this.client.close();
       this.client = null;
-      this.eventEmitter.emit("disconnected");
+      this.eventEmitter.emit('disconnected');
 
       if (!isForced) {
         this.tryReconnect();
@@ -185,7 +185,7 @@ export class SubscriptionClient {
       subscribe(
         observerOrNext: (Observer<ExecutionResult>) | ((v: ExecutionResult) => void),
         onError?: (error: Error) => void,
-        onComplete?: () => void
+        onComplete?: () => void,
       ) {
         const observer = getObserver(observerOrNext, onError, onComplete);
 
@@ -211,9 +211,9 @@ export class SubscriptionClient {
               unsubscribe(opId);
               opId = null;
             }
-          }
+          },
         };
-      }
+      },
     };
   }
 
@@ -226,27 +226,27 @@ export class SubscriptionClient {
   }
 
   public onConnected(callback: ListenerFn, context?: any): Function {
-    return this.on("connected", callback, context);
+    return this.on('connected', callback, context);
   }
 
   public onConnecting(callback: ListenerFn, context?: any): Function {
-    return this.on("connecting", callback, context);
+    return this.on('connecting', callback, context);
   }
 
   public onDisconnected(callback: ListenerFn, context?: any): Function {
-    return this.on("disconnected", callback, context);
+    return this.on('disconnected', callback, context);
   }
 
   public onReconnected(callback: ListenerFn, context?: any): Function {
-    return this.on("reconnected", callback, context);
+    return this.on('reconnected', callback, context);
   }
 
   public onReconnecting(callback: ListenerFn, context?: any): Function {
-    return this.on("reconnecting", callback, context);
+    return this.on('reconnecting', callback, context);
   }
 
   public onError(callback: ListenerFn, context?: any): Function {
-    return this.on("error", callback, context);
+    return this.on('error', callback, context);
   }
 
   public unsubscribeAll() {
@@ -281,10 +281,10 @@ export class SubscriptionClient {
 
   public use(middlewares: Middleware[]): SubscriptionClient {
     middlewares.map(middleware => {
-      if (typeof middleware.applyMiddleware === "function") {
+      if (typeof middleware.applyMiddleware === 'function') {
         this.middlewares.push(middleware);
       } else {
-        throw new Error("Middleware must implement the applyMiddleware function.");
+        throw new Error('Middleware must implement the applyMiddleware function.');
       }
     });
 
@@ -318,13 +318,13 @@ export class SubscriptionClient {
   private getObserver<T>(
     observerOrNext: (Observer<T>) | ((v: T) => void),
     error?: (e: Error) => void,
-    complete?: () => void
+    complete?: () => void,
   ) {
-    if (typeof observerOrNext === "function") {
+    if (typeof observerOrNext === 'function') {
       return {
         next: (v: T) => observerOrNext(v),
         error: (e: Error) => error && error(e),
-        complete: () => complete && complete()
+        complete: () => complete && complete(),
       };
     }
 
@@ -338,7 +338,7 @@ export class SubscriptionClient {
     return new Backoff({
       min: minValue,
       max: maxValue,
-      factor: 1.2
+      factor: 1.2,
     });
   }
 
@@ -384,11 +384,11 @@ export class SubscriptionClient {
     const { query, variables, operationName } = options;
 
     if (!query) {
-      throw new Error("Must provide a query.");
+      throw new Error('Must provide a query.');
     }
 
     if (!handler) {
-      throw new Error("Must provide an handler.");
+      throw new Error('Must provide an handler.');
     }
 
     if (
@@ -397,8 +397,8 @@ export class SubscriptionClient {
       (variables && !isObject(variables))
     ) {
       throw new Error(
-        "Incorrect option types. query must be a string or a document," +
-        "`operationName` must be a string, and `variables` must be an object."
+        'Incorrect option types. query must be a string or a document,' +
+          '`operationName` must be a string, and `variables` must be an object.',
       );
     }
   }
@@ -407,15 +407,15 @@ export class SubscriptionClient {
     const payloadToReturn =
       payload && payload.query
         ? {
-          ...payload,
-          query: typeof payload.query === "string" ? payload.query : print(payload.query)
-        }
+            ...payload,
+            query: typeof payload.query === 'string' ? payload.query : print(payload.query),
+          }
         : payload;
 
     return {
       id,
       type,
-      payload: payloadToReturn
+      payload: payloadToReturn,
     };
   }
 
@@ -437,10 +437,10 @@ export class SubscriptionClient {
 
     return [
       {
-        name: "FormatedError",
-        message: "Unknown error",
-        originalError: errors
-      }
+        name: 'FormatedError',
+        message: 'Unknown error',
+        originalError: errors,
+      },
     ];
   }
 
@@ -468,9 +468,9 @@ export class SubscriptionClient {
       default:
         if (!this.reconnecting) {
           throw new Error(
-            "A message was not sent because socket is not connected, is closing or " +
-            "is already closed. Message was: " +
-            JSON.stringify(message)
+            'A message was not sent because socket is not connected, is closing or ' +
+              'is already closed. Message was: ' +
+              JSON.stringify(message),
           );
         }
     }
@@ -524,6 +524,7 @@ export class SubscriptionClient {
     // Max timeout trying to connect
     this.maxConnectTimeoutId = setTimeout(() => {
       if (this.status !== this.wsImpl.OPEN) {
+        this.reconnecting = true;
         this.close(false, true);
       }
     }, this.maxConnectTimeGenerator.duration());
@@ -535,16 +536,18 @@ export class SubscriptionClient {
     this.checkMaxConnectTimeout();
 
     this.client.onopen = () => {
-      this.clearMaxConnectTimeout();
-      this.closedByUser = false;
-      this.eventEmitter.emit(this.reconnecting ? "reconnecting" : "connecting");
+      if (this.status === this.wsImpl.OPEN) {
+        this.clearMaxConnectTimeout();
+        this.closedByUser = false;
+        this.eventEmitter.emit(this.reconnecting ? 'reconnecting' : 'connecting');
 
-      Promise.resolve(
-        typeof this.connectionParams === "function" ? this.connectionParams() : this.connectionParams
-      ).then(payload => {
-        this.sendMessage(undefined, MessageTypes.GQL_CONNECTION_INIT, payload);
-        this.flushUnsentMessagesQueue();
-      });
+        Promise.resolve(
+          typeof this.connectionParams === 'function' ? this.connectionParams() : this.connectionParams,
+        ).then(payload => {
+          this.sendMessage(undefined, MessageTypes.GQL_CONNECTION_INIT, payload);
+          this.flushUnsentMessagesQueue();
+        });
+      }
     };
 
     this.client.onclose = () => {
@@ -556,7 +559,7 @@ export class SubscriptionClient {
     this.client.onerror = (err: Error) => {
       // Capture and ignore errors to prevent unhandled exceptions, wait for
       // onclose to fire before attempting a reconnect.
-      this.eventEmitter.emit("error", err);
+      this.eventEmitter.emit('error', err);
     };
 
     this.client.onmessage = ({ data }: { data: any }) => {
@@ -592,7 +595,7 @@ export class SubscriptionClient {
         break;
 
       case MessageTypes.GQL_CONNECTION_ACK:
-        this.eventEmitter.emit(this.reconnecting ? "reconnected" : "connected");
+        this.eventEmitter.emit(this.reconnecting ? 'reconnected' : 'connected');
         this.reconnecting = false;
         this.backoff.reset();
         this.maxConnectTimeGenerator.reset();
@@ -620,7 +623,7 @@ export class SubscriptionClient {
         break;
 
       case MessageTypes.GQL_CONNECTION_KEEP_ALIVE:
-        const firstKA = typeof this.wasKeepAliveReceived === "undefined";
+        const firstKA = typeof this.wasKeepAliveReceived === 'undefined';
         this.wasKeepAliveReceived = true;
 
         if (firstKA) {
@@ -635,7 +638,7 @@ export class SubscriptionClient {
         break;
 
       default:
-        throw new Error("Invalid message type!");
+        throw new Error('Invalid message type!');
     }
   }
 
